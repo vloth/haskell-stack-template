@@ -8,8 +8,7 @@ Basic haskell's program template
 stack new my-project https://raw.githubusercontent.com/vloth/haskell-stack-template/master/template.hsfiles
 ```
 
-### Create a new project with `stack new`
-Run your editor with the following command:
+### Run your editor via `stack`
 ```bash
 stack exec nvim
 # OR
