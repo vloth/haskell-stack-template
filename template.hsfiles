@@ -1,24 +1,64 @@
-{-# START_FILE {{name}}.cabal #-}
+{-# START_FILE package.yaml #-}
 name:                {{name}}
 version:             0.1.0.0
--- synopsis:
--- description:
-homepage:            https://github.com/{{github-username}}{{^github-username}}githubuser{{/github-username}}/{{name}}#readme
-license:             MIT
-license-file:        LICENSE
-author:              {{author-name}}{{^author-name}}Author name here{{/author-name}}
-maintainer:          {{author-email}}{{^author-email}}example@example.com{{/author-email}}
-copyright:           {{copyright}}{{^copyright}}{{year}}{{^year}}2019{{/year}} {{author-name}}{{^author-name}}Author name here{{/author-name}}{{/copyright}}
-category:            {{category}}{{^category}}Web{{/category}}
-build-type:          Simple
-cabal-version:       >=1.10
-extra-source-files:  README.md
+github:              "{{github-username}}{{^github-username}}githubuser{{/github-username}}/{{name}}"
+license:             BSD3
+author:              "{{author-name}}{{^author-name}}Author name here{{/author-name}}"
+maintainer:          "{{author-email}}{{^author-email}}example@example.com{{/author-email}}"
+copyright:           "{{copyright}}{{^copyright}}{{year}}{{^year}}2019{{/year}} {{author-name}}{{^author-name}}Author name here{{/author-name}}{{/copyright}}"
 
-executable {{name}}
-  hs-source-dirs:      src
-  main-is:             Main.hs
-  default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5
+extra-source-files:
+- README.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            {{category}}{{^category}}Web{{/category}}
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/{{github-username}}{{^github-username}}githubuser{{/github-username}}/{{name}}#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- hspec
+
+library:
+  source-dirs: src
+
+executables:
+  {{name}}-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - {{name}}
+
+tests:
+  {{name}}-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - {{name}}
+    - hspec
+
+{-# START_FILE stack.yaml #-}
+resolver: lts-15.3
+
+{-# START_FILE hie.yaml #-}
+cradle:
+  stack:
+    - path: "./"
+      component: "{{name}}:lib"
+    - path: "./test"
+      component: "{{name}}:test:{{name}}-test"
 
 {-# START_FILE Setup.hs #-}
 import Distribution.Simple
@@ -27,12 +67,49 @@ main = defaultMain
 {-# START_FILE README.md #-}
 # {{name}}
 
-{-# START_FILE src/Main.hs #-}
+## How to use
+
+### Execute
+```bash
+stack run
+```
+
+### Tests
+```bash
+stack test
+```
+
+{-# START_FILE app/Main.hs #-}
 module Main where
 
+import Libs
+
 main :: IO ()
-main = do
-  putStrLn "hello world"
+main = printFunc hello
+
+{-# START_FILE src/Libs.hs #-}
+module Libs
+    ( hello
+    , printFunc
+    ) where
+
+hello :: String
+hello = "Hello"
+
+printFunc :: String -> IO ()
+printFunc msg = putStrLn (msg ++ ", World!")
+
+{-# START_FILE test/Spec.hs #-}
+import Test.Hspec        (Spec, it, shouldBe)
+import Test.Hspec.Runner (configFastFail, defaultConfig, hspecWith)
+
+import Libs
+
+main :: IO ()
+main = hspecWith defaultConfig {configFastFail = True} specs
+
+specs :: Spec
+specs = it "hello should return hello" $ hello `shouldBe` "Hello"
 
 {-# START_FILE LICENSE #-}
 Copyright {{author-name}}{{^author-name}}Author name here{{/author-name}} (c) {{year}}{{^year}}2019{{/year}}
@@ -62,5 +139,4 @@ SOFTWARE.
 {-# START_FILE .gitignore #-}
 dist*/
 .stack-work/
-*.cabal
 *~
